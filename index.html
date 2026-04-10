@@ -233,7 +233,7 @@
 
             // Set UI trạng thái Loading
             $('#btnSubmit').prop('disabled', true);
-            $('.btn-text').text('Hệ thống đang bóc tách...');
+            $('.btn-text').text('Hệ thống đang xử lí...');
             $('.spinner').addClass('show');
             $('#result-section').removeClass('show');
 
@@ -257,7 +257,7 @@
                         $('#affiliate-links-container').html(`
                             <div class="link-box">
                                 <div class="link-box-header">
-                                    <strong><i class="fas fa-check-circle text-success mr-2"></i>Link Affiliate hoàn chỉnh</strong>
+                                    <strong><i class="fas fa-check-circle text-success mr-2"></i>Link mã FB</strong>
                                     <button class="copy-btn" data-link="${generatedLink}">
                                         <i class="fas fa-copy mr-1"></i>Copy
                                     </button>
