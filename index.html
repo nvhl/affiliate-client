@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tạo Link Shopee</title>
+    <meta name="description" content="Công cụ tạo link Shopee bào mã Facebook">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #ee4d2d;
+            --secondary: #ff6b35;
+            --success: #26de81;
+            --info: #4b7bec;
+            --dark: #2f3542;
+        }
+
+        body {
+            background: linear-gradient(135deg, rgb(255, 190, 166) 0%, rgb(255, 225, 219) 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 650px; padding: 1rem; }
+        
+        .header { text-align: center; padding: 1rem 0; color: var(--primary); }
+        .header h1 { font-size: 1.5rem; font-weight: 700; margin: 0; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
+        
+        .domain-badge {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-top: 0.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        .card-content { padding: 1.5rem 1rem; }
+
+        .form-label { font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; font-size: 14px; }
+        
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 0.15rem rgba(238, 77, 45, 0.15); }
+
+        .input-group-text {
+            background: white; border: 2px solid #e9ecef; border-left: none;
+            border-radius: 0 0.75rem 0.75rem 0; cursor: pointer; transition: all 0.3s;
+        }
+        .input-group-text:hover { background: #f8f9fa; }
+
+        .btn-custom {
+            border-radius: 0.75rem; padding: 0.75rem 1rem; font-weight: 600;
+            border: none; transition: all 0.3s; position: relative; overflow: hidden;
+        }
+        .btn-primary-custom { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
+        .btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(238, 77, 45, 0.4); color: white; }
+        .btn-success-custom { background: linear-gradient(135deg, var(--success), #20bf6b); color: white; }
+        /* Styling cho nút Facebook mới */
+        .btn-facebook-custom { background: linear-gradient(135deg, #3b5998, #4e69a2); color: white; }
+        .btn-facebook-custom:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(59, 89, 152, 0.4); color: white; }
+        
+        .result-section {
+            display: none; background: #f8f9fa; border-radius: 1rem;
+            padding: 1rem; margin-top: 1rem;
+        }
+        .result-section.show { display: block; animation: slideIn 0.3s ease; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .link-box {
+            background: white; border: 2px solid var(--primary); border-radius: 0.75rem;
+            padding: 1rem; word-break: break-all; font-size: 0.875rem; color: #495057; margin-bottom: 0.5rem;
+        }
+        .link-box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+
+        .copy-btn {
+            background: var(--primary); color: white; border: none;
+            border-radius: 0.5rem; padding: 0.5rem 1rem; font-size: 0.8125rem;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .copy-btn:hover { background: var(--secondary); transform: scale(1.05); }
+
+        .spinner {
+            display: none; width: 1.25rem; height: 1.25rem;
+            border: 3px solid rgba(255, 255, 255, 0.3); border-top-color: white;
+            border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+        .spinner.show { display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .instructions-box { background: #f5f5f5; border-radius: 0.5rem; padding: 1rem; }
+        .instructions-box h6 { font-weight: bold; margin-bottom: 0.5rem; }
+        .instructions-box ol { padding-left: 1.5rem; margin-bottom: 0; }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-link mr-2"></i>Tạo Link Shopee</h1>
+            <div class="domain-badge">Hệ thống chuyển đổi Auto</div>
+        </div>
+
+        <div class="main-card">
+            <div class="card-content">
+                <form id="link-form">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-shopping-bag mr-2"></i>Link sản phẩm Shopee (Gốc hoặc rút gọn)
+                        </label>
+                        <div class="input-group">
+                            <input type="url" class="form-control" id="input_url" placeholder="Dán link Shopee vào đây..." required>
+                            <div class="input-group-append">
+                                <span class="input-group-text" id="btnPaste" title="Dán từ Clipboard">
+                                    <i class="fas fa-paste"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-custom btn-custom btn-block" id="btnSubmit">
+                        <i class="fas fa-magic mr-2"></i>
+                        <span class="btn-text">Tạo Link Ngay</span>
+                        <div class="spinner"></div>
+                    </button>
+                </form>
+
+                <div id="result-section" class="result-section">
+                    <div id="affiliate-links-container">
+                        </div>
+
+                    <div class="mt-3 text-center">
+                        <a class="btn btn-success-custom btn-custom w-100" id="btnBuy" href="#" target="_blank">
+                            <i class="fas fa-shopping-cart mr-2"></i>Mở Link Xem Thử
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-content border-top">
+                <div class="instructions-box">
+                    <h6><i class="fas fa-info-circle text-primary mr-2"></i>Cách dùng Trick lấy mã:</h6>
+                    <ol>
+                        <li>Dán link sản phẩm bạn muốn mua vào ô trên và bấm <b>Tạo Link</b>.</li>
+                        <li>Bấm nút <b>Copy</b> link vừa được tạo ra.</li>
+                        <li>Bấm nút <b>Chia sẻ lên bài viết Nhóm FB</b> để mở bài viết facebook.</li>
+                        <li>Dán link vừa copy vào phần bình luận và bấm trực tiếp vào đó để mở App Shopee.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Cấu hình thông báo Toast của SweetAlert2
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true
+        });
+
+        function showToast(msg, icon = 'success') {
+            Toast.fire({ icon, title: msg });
+        }
+
+        // CHỖ CẦN THAY THẾ LINK BÀI VIẾT FACEBOOK CỦA BẠN
+        // Hãy copy link bài viết thật trong nhóm và dán vào giữa dấu nháy đơn dưới đây
+        const FACEBOOK_POST_URL = 'https://www.facebook.com/groups/2435803326859591/posts/2470357513404172';
+
+        // Hàm Copy vào Clipboard
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text)
+                    .then(() => showToast('Đã copy link thành công! Hãy dán vào cmt FB nhé.'))
+                    .catch(() => showToast('Lỗi khi copy', 'error'));
+            } else {
+                const temp = document.createElement('textarea');
+                temp.value = text;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy') ? showToast('Đã copy thành công!') : showToast('Lỗi khi copy', 'error');
+                document.body.removeChild(temp);
+            }
+        }
+
+        // Xử lý nút dán (Paste)
+        $('#btnPaste').on('click', function() {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.readText().then(text => {
+                    if (text) {
+                        $('#input_url').val(text.trim());
+                        showToast('Đã dán link!');
+                    }
+                }).catch(() => {
+                    showToast('Trình duyệt không hỗ trợ tự dán, hãy ấn Ctrl+V', 'info');
+                    $('#input_url').focus();
+                });
+            } else {
+                showToast('Hãy ấn Ctrl+V để dán link', 'info');
+                $('#input_url').focus();
+            }
+        });
+
+        // Lắng nghe sự kiện Submit Form (Gọi API Railway)
+        $('#link-form').on('submit', function(e) {
+            e.preventDefault();
+
+            const inputUrl = $('#input_url').val().trim();
+            if (!inputUrl) return showToast('Vui lòng nhập link Shopee!', 'warning');
+
+            // Set UI trạng thái Loading
+            $('#btnSubmit').prop('disabled', true);
+            $('.btn-text').text('Hệ thống đang bóc tách...');
+            $('.spinner').addClass('show');
+            $('#result-section').removeClass('show');
+
+            // GỌI API ĐẾN SERVER RAILWAY CỦA BẠN
+            $.ajax({
+                url: 'https://affiliate-server-production.up.railway.app/api/convert',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ url: inputUrl }),
+                timeout: 30000,
+                success: function(response) {
+                    // Trả lại UI trạng thái bình thường
+                    $('#btnSubmit').prop('disabled', false);
+                    $('.btn-text').text('Tạo Link Ngay');
+                    $('.spinner').removeClass('show');
+
+                    if (response.success && response.affiliate_link) {
+                        const generatedLink = response.affiliate_link;
+                        
+                        // Cập nhật HTML phần kết quả, bao gồm link box và NÚT CHIA SẺ MỚI
+                        $('#affiliate-links-container').html(`
+                            <div class="link-box">
+                                <div class="link-box-header">
+                                    <strong><i class="fas fa-check-circle text-success mr-2"></i>Link Affiliate hoàn chỉnh</strong>
+                                    <button class="copy-btn" data-link="${generatedLink}">
+                                        <i class="fas fa-copy mr-1"></i>Copy
+                                    </button>
+                                </div>
+                                <div style="color: var(--primary); font-weight: 500;">${generatedLink}</div>
+                            </div>
+                            
+                            <div class="mt-2 text-center">
+                                <button class="btn btn-facebook-custom btn-custom w-100" id="btnShareFbGroup">
+                                    <i class="fab fa-facebook mr-2"></i>Chia sẻ lên bài viết Nhóm FB
+                                </button>
+                            </div>
+                        `);
+
+                        $('#btnBuy').attr('href', generatedLink);
+                        $('#result-section').addClass('show');
+                        showToast('Chuyển đổi thành công!');
+                    } else {
+                        showToast('Máy chủ trả về dữ liệu không hợp lệ', 'error');
+                    }
+                },
+                error: function(err) {
+                    $('#btnSubmit').prop('disabled', false);
+                    $('.btn-text').text('Tạo Link Ngay');
+                    $('.spinner').removeClass('show');
+                    console.error(err);
+                    showToast('Lỗi kết nối đến Server Railway!', 'error');
+                }
+            });
+        });
+
+        // Lắng nghe sự kiện nút Copy
+        $(document).on('click', '.copy-btn', function() {
+            const link = $(this).data('link');
+            copyToClipboard(link);
+        });
+
+        // LẮNG NGHE SỰ KIỆN NÚT CHIA SẺ FB MỚI
+        $(document).on('click', '#btnShareFbGroup', function() {
+            // Kiểm tra xem user đã cập nhật link chưa
+            if (FACEBOOK_POST_URL === 'https://www.facebook.com/groups/YOUR_GROUP_ID/posts/YOUR_POST_ID/') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Chưa cấu hình link FB!',
+                    text: 'Admin vui lòng cập nhật FACEBOOK_POST_URL thật trong code trước khi sử dụng nút này nhé.',
+                    confirmButtonText: 'Đóng'
+                });
+                return;
+            }
+            // Mở bài viết FB trong tab mới
+            window.open(FACEBOOK_POST_URL, '_blank');
+            showToast('Đang mở bài viết Facebook...', 'info');
+        });
+    </script>
+</body>
+</html>
