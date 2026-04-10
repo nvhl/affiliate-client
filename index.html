@@ -61,9 +61,12 @@
 
         .input-group-text {
             background: white; border: 2px solid #e9ecef; border-left: none;
-            border-radius: 0 0.75rem 0.75rem 0; cursor: pointer; transition: all 0.3s;
+            cursor: pointer; transition: all 0.3s;
         }
         .input-group-text:hover { background: #f8f9fa; }
+        /* Tùy chỉnh bo góc cho các nút trong input */
+        #btnClear { border-right: none; color: #dc3545; }
+        #btnPaste { border-radius: 0 0.75rem 0.75rem 0; color: var(--primary); }
 
         .btn-custom {
             border-radius: 0.75rem; padding: 0.75rem 1rem; font-weight: 600;
@@ -72,7 +75,6 @@
         .btn-primary-custom { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
         .btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(238, 77, 45, 0.4); color: white; }
         .btn-success-custom { background: linear-gradient(135deg, var(--success), #20bf6b); color: white; }
-        /* Styling cho nút Facebook mới */
         .btn-facebook-custom { background: linear-gradient(135deg, #3b5998, #4e69a2); color: white; }
         .btn-facebook-custom:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(59, 89, 152, 0.4); color: white; }
         
@@ -109,6 +111,14 @@
         .instructions-box { background: #f5f5f5; border-radius: 0.5rem; padding: 1rem; }
         .instructions-box h6 { font-weight: bold; margin-bottom: 0.5rem; }
         .instructions-box ol { padding-left: 1.5rem; margin-bottom: 0; }
+
+        /* Style Lịch sử */
+        .history-item { 
+            background: #fff; padding: 0.75rem; border-radius: 0.5rem; 
+            margin-bottom: 0.5rem; border: 1px solid #e9ecef; font-size: 0.85rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .history-item-link { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%; }
     </style>
 </head>
 
@@ -129,6 +139,9 @@
                         <div class="input-group">
                             <input type="url" class="form-control" id="input_url" placeholder="Dán link Shopee vào đây..." required>
                             <div class="input-group-append">
+                                <span class="input-group-text" id="btnClear" title="Xóa trắng" style="display: none;">
+                                    <i class="fas fa-times"></i>
+                                </span>
                                 <span class="input-group-text" id="btnPaste" title="Dán từ Clipboard">
                                     <i class="fas fa-paste"></i>
                                 </span>
@@ -144,8 +157,7 @@
                 </form>
 
                 <div id="result-section" class="result-section">
-                    <div id="affiliate-links-container">
-                        </div>
+                    <div id="affiliate-links-container"></div>
 
                     <div class="mt-3 text-center">
                         <a class="btn btn-success-custom btn-custom w-100" id="btnBuy" href="#" target="_blank">
@@ -153,6 +165,12 @@
                         </a>
                     </div>
                 </div>
+            </div>
+
+            <div class="card-content border-top bg-light" id="history-container" style="display: none;">
+                <h6 class="font-weight-bold text-secondary mb-3"><i class="fas fa-history mr-2"></i>Lịch sử tạo link gần đây</h6>
+                <div id="history-list">
+                    </div>
             </div>
 
             <div class="card-content border-top">
@@ -173,7 +191,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Cấu hình thông báo Toast của SweetAlert2
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -186,9 +203,53 @@
             Toast.fire({ icon, title: msg });
         }
 
-        // CHỖ CẦN THAY THẾ LINK BÀI VIẾT FACEBOOK CỦA BẠN
-        // Hãy copy link bài viết thật trong nhóm và dán vào giữa dấu nháy đơn dưới đây
         const FACEBOOK_POST_URL = 'https://www.facebook.com/groups/2435803326859591/posts/2470357513404172';
+
+        // --- TÍNH NĂNG 1: QUẢN LÝ LỊCH SỬ (LOCAL STORAGE) ---
+        function loadHistory() {
+            let history = JSON.parse(localStorage.getItem('shopee_aff_history') || '[]');
+            if (history.length > 0) {
+                $('#history-container').show();
+                let html = '';
+                history.forEach(item => {
+                    html += `
+                        <div class="history-item">
+                            <div class="history-item-link text-primary">${item.affiliate_link}</div>
+                            <button class="btn btn-sm btn-outline-secondary copy-btn" data-link="${item.affiliate_link}">
+                                Copy
+                            </button>
+                        </div>
+                    `;
+                });
+                $('#history-list').html(html);
+            }
+        }
+
+        function saveToHistory(affiliateLink) {
+            let history = JSON.parse(localStorage.getItem('shopee_aff_history') || '[]');
+            // Tránh lưu trùng lặp liên tiếp
+            if (history.length === 0 || history[0].affiliate_link !== affiliateLink) {
+                history.unshift({ affiliate_link: affiliateLink });
+                if (history.length > 5) history.pop(); // Chỉ giữ 5 link gần nhất
+                localStorage.setItem('shopee_aff_history', JSON.stringify(history));
+                loadHistory();
+            }
+        }
+
+        // --- TÍNH NĂNG 2: XỬ LÝ NÚT XÓA NHANH ---
+        $('#input_url').on('input', function() {
+            if ($(this).val().trim() !== '') {
+                $('#btnClear').show();
+            } else {
+                $('#btnClear').hide();
+            }
+        });
+
+        $('#btnClear').on('click', function() {
+            $('#input_url').val('').focus();
+            $(this).hide();
+            $('#result-section').removeClass('show');
+        });
 
         // Hàm Copy vào Clipboard
         function copyToClipboard(text) {
@@ -211,7 +272,7 @@
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.readText().then(text => {
                     if (text) {
-                        $('#input_url').val(text.trim());
+                        $('#input_url').val(text.trim()).trigger('input'); // Trigger input để hiện nút Xóa
                         showToast('Đã dán link!');
                     }
                 }).catch(() => {
@@ -231,13 +292,11 @@
             const inputUrl = $('#input_url').val().trim();
             if (!inputUrl) return showToast('Vui lòng nhập link Shopee!', 'warning');
 
-            // Set UI trạng thái Loading
             $('#btnSubmit').prop('disabled', true);
             $('.btn-text').text('Hệ thống đang xử lí...');
             $('.spinner').addClass('show');
             $('#result-section').removeClass('show');
 
-            // GỌI API ĐẾN SERVER RAILWAY CỦA BẠN
             $.ajax({
                 url: 'https://affiliate-server-production.up.railway.app/api/convert',
                 method: 'POST',
@@ -245,7 +304,6 @@
                 data: JSON.stringify({ url: inputUrl }),
                 timeout: 30000,
                 success: function(response) {
-                    // Trả lại UI trạng thái bình thường
                     $('#btnSubmit').prop('disabled', false);
                     $('.btn-text').text('Tạo Link Ngay');
                     $('.spinner').removeClass('show');
@@ -253,11 +311,10 @@
                     if (response.success && response.affiliate_link) {
                         const generatedLink = response.affiliate_link;
                         
-                        // Cập nhật HTML phần kết quả, bao gồm link box và NÚT CHIA SẺ MỚI
                         $('#affiliate-links-container').html(`
                             <div class="link-box">
                                 <div class="link-box-header">
-                                    <strong><i class="fas fa-check-circle text-success mr-2"></i>Link mã FB</strong>
+                                    <strong><i class="fas fa-check-circle text-success mr-2"></i>Link mã FB ${response.from_cache ? '<span class="badge badge-warning">Siêu Tốc</span>' : ''}</strong>
                                     <button class="copy-btn" data-link="${generatedLink}">
                                         <i class="fas fa-copy mr-1"></i>Copy
                                     </button>
@@ -275,41 +332,43 @@
                         $('#btnBuy').attr('href', generatedLink);
                         $('#result-section').addClass('show');
                         showToast('Chuyển đổi thành công!');
+
+                        // Lưu vào lịch sử
+                        saveToHistory(generatedLink);
                     } else {
-                        showToast('Máy chủ trả về dữ liệu không hợp lệ', 'error');
+                        showToast(response.error || 'Máy chủ trả về dữ liệu không hợp lệ', 'error');
                     }
                 },
                 error: function(err) {
                     $('#btnSubmit').prop('disabled', false);
                     $('.btn-text').text('Tạo Link Ngay');
                     $('.spinner').removeClass('show');
-                    console.error(err);
-                    showToast('Lỗi kết nối đến Server Railway!', 'error');
+                    
+                    // Xử lý thông báo lỗi nếu bị Rate Limit (Spam quá nhiều)
+                    if (err.status === 429 && err.responseJSON) {
+                        showToast(err.responseJSON.error, 'warning');
+                    } else {
+                        showToast('Lỗi kết nối đến Server Railway!', 'error');
+                    }
                 }
             });
         });
 
-        // Lắng nghe sự kiện nút Copy
+        // Delegate event cho các nút copy (Vì nó được tạo động bằng JS)
         $(document).on('click', '.copy-btn', function() {
             const link = $(this).data('link');
             copyToClipboard(link);
         });
 
-        // LẮNG NGHE SỰ KIỆN NÚT CHIA SẺ FB MỚI
+        // Nút mở FB Group
         $(document).on('click', '#btnShareFbGroup', function() {
-            // Kiểm tra xem user đã cập nhật link chưa
-            if (FACEBOOK_POST_URL === 'https://www.facebook.com/groups/YOUR_GROUP_ID/posts/YOUR_POST_ID/') {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Chưa cấu hình link FB!',
-                    text: 'Admin vui lòng cập nhật FACEBOOK_POST_URL thật trong code trước khi sử dụng nút này nhé.',
-                    confirmButtonText: 'Đóng'
-                });
-                return;
-            }
-            // Mở bài viết FB trong tab mới
             window.open(FACEBOOK_POST_URL, '_blank');
             showToast('Đang mở bài viết Facebook...', 'info');
+        });
+
+        // Khởi chạy khi web load xong
+        $(document).ready(function() {
+            loadHistory();
         });
     </script>
 </body>
